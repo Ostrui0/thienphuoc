@@ -1,0 +1,15 @@
+
+services:
+  chart-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chart-api-ngoc
+    restart: always
+    ports:
+      - "1234:1234"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+    command: python main.py
