@@ -82,7 +82,7 @@ def create_revenue_chart(chart_data: dict, last_month_str: str, prev_month_str: 
     add_labels(rects2, prev_month_shares)
 
     # Định dạng và trang trí biểu đồ
-    ax.set_title(f'Doanh thu công ty tháng {last_month_str} và tháng {prev_month_str}',
+    ax.set_title(f'Doanh thu công tytháng {last_month_str} và tháng {prev_month_str}',
                  fontsize=15, fontweight='bold', pad=15)
     ax.set_ylabel('Doanh thu (VNĐ)', fontsize=11)
     ax.set_xticks(x)
@@ -143,6 +143,6 @@ def generate_chart_endpoint(request: ChartRequest):
 
 
 # --- 6. Chạy Server ---
-if name == "main":
+if __name__ == "__main__":
     # Chạy server trên tất cả các địa chỉ IP của máy, cổng 1234
     uvicorn.run(app, host="0.0.0.0", port=1234)
