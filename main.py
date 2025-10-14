@@ -72,7 +72,7 @@ def create_revenue_chart(request: Request):
     add_labels(rects1, last_month_shares)
     add_labels(rects2, prev_month_shares)
 
-    ax.set_title(f'So sánh Doanh thu tháng {request.last_month_str} và {request.prev_month_str}',
+    ax.set_title(f'Doanh thu công ty tháng {request.last_month_str} và tháng {request.prev_month_str}',
                  fontsize=15, fontweight='bold', pad=15)
     ax.set_ylabel('Doanh thu (VNĐ)', fontsize=11)
     ax.set_xticks(x)
