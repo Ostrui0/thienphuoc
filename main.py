@@ -147,36 +147,75 @@ def create_horizontal_grouped_barchart(chart_data: dict, last_month_str: str, pr
 
 # Hàm 3: Logic cho biểu đồ cột nhóm người dùng mới
 def create_new_user_chart(chart_data: dict, last_month_str: str, prev_month_str: str, width: int, height: int, dpi: int):
-    def format_simple_number(num, pos=None): return f'{int(num):,}'
+    """
+    Vẽ biểu đồ THANH NGANG NHÓM so sánh người dùng mới 2 tháng, với giao diện đồng nhất.
+    """
+
+    def format_simple_number(num, pos=None):
+        """Định dạng số bằng cách thêm dấu phẩy hàng nghìn."""
+        return f'{int(num):,}'
+
+    # Trích xuất và sắp xếp dữ liệu (giữ nguyên logic sắp xếp)
     labels = np.array(chart_data['labels'])
     last_month_users = np.array(chart_data['new_user_last_month'])
     prev_month_users = np.array(chart_data['new_user_prev_month'])
+
     sorted_indices = np.argsort(last_month_users)[::-1]
-    labels, last_month_users, prev_month_users = labels[sorted_indices], last_month_users[sorted_indices], prev_month_users[sorted_indices]
+    labels = labels[sorted_indices]
+    last_month_users = last_month_users[sorted_indices]
+    prev_month_users = prev_month_users[sorted_indices]
+
+    # Cấu hình font chữ
     plt.rcParams['font.family'] = 'sans-serif'
     plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial']
     fig, ax = plt.subplots(figsize=(width, height))
-    x = np.arange(len(labels))
-    bar_width = 0.35
-    rects1 = ax.bar(x - bar_width/2, last_month_users, bar_width, label=f'Lượt đăng ký mới {last_month_str}', color='skyblue')
-    rects2 = ax.bar(x + bar_width/2, prev_month_users, bar_width, label=f'Lượt đăng ký mới {prev_month_str}', color='lightcoral')
+
+    # <<< THAY ĐỔI 1: TÍNH TOÁN VỊ TRÍ CHO THANH NGANG >>>
+    y = np.arange(len(labels))  # Vị trí trên trục Y
+    bar_height = 0.35           # Chiều cao (độ dày) của mỗi thanh
+
+    # <<< THAY ĐỔI 2: SỬ DỤNG ax.barh() ĐỂ VẼ THANH NGANG >>>
+    rects1 = ax.barh(y - bar_height/2, last_month_users, bar_height,
+                     label=f'Lượt đăng ký mới {last_month_str}', color='skyblue')
+    rects2 = ax.barh(y + bar_height/2, prev_month_users, bar_height,
+                     label=f'Lượt đăng ký mới {prev_month_str}', color='lightcoral')
+
+    # <<< THAY ĐỔI 3: CẬP NHẬT LOGIC THÊM NHÃN DỮ LIỆU >>>
     def add_labels(rects):
         for rect in rects:
-            height = rect.get_height()
-            ax.annotate(format_simple_number(height), xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 3), textcoords="offset points", ha='center', va='bottom', fontsize=8, fontweight='bold')
+            width = rect.get_width() # Lấy chiều rộng thay vì chiều cao
+            ax.annotate(format_simple_number(width),
+                        xy=(width, rect.get_y() + rect.get_height() / 2),
+                        xytext=(3, 0),  # Dịch chuyển sang phải
+                        textcoords="offset points",
+                        ha='left', va='center', # Căn lề trái, giữa
+                        fontsize=8, fontweight='bold')
+
     add_labels(rects1)
     add_labels(rects2)
-    ax.set_title(f'Lượt đăng ký mới theo top 5 CP tháng {last_month_str} và tháng {prev_month_str}', fontsize=14, fontweight='bold', pad=20)
-    ax.set_ylabel('Lượt đăng ký mới', fontsize=10)
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=45, ha='right', fontsize=10)
-    ax.legend(loc='upper right')
-    ax.get_yaxis().set_major_formatter(mticker.FuncFormatter(format_simple_number))
-    ax.set_ylim(0, max(max(last_month_users), max(prev_month_users)) * 1.2)
-    ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+    # <<< THAY ĐỔI 4: ĐỊNH DẠNG LẠI TRỤC VÀ TIÊU ĐỀ >>>
+    ax.set_title(f'Lượt đăng ký mới theo top 5 CP tháng {last_month_str} và tháng {prev_month_str}',
+                 fontsize=14, fontweight='bold', pad=20)
+    ax.set_xlabel('Lượt đăng ký mới', fontsize=10) # Trục X bây giờ là giá trị
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels, fontsize=10) # Nhãn CP nằm trên trục Y
+    ax.legend(loc='lower right') # Chuyển legend xuống dưới cho đẹp hơn
+
+    # Đảo ngược trục Y để CP có giá trị cao nhất ở trên cùng
+    ax.invert_yaxis()
+
+    # Định dạng trục X với dấu phẩy
+    ax.get_xaxis().set_major_formatter(mticker.FuncFormatter(format_simple_number))
+    ax.set_xlim(0, max(max(last_month_users), max(prev_month_users)) * 1.2)
+
+    ax.grid(axis='x', linestyle='--', alpha=0.7) # Lưới theo trục X
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+    
     fig.tight_layout()
+
+    # Lưu vào buffer (không đổi)
     buf = io.BytesIO()
     fig.savefig(buf, format='png', dpi=dpi)
     buf.seek(0)
