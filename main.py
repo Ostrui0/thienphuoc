@@ -1,9 +1,11 @@
 import io
+import os
 import uvicorn
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,8 +13,12 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List
 
-# --- 2. Cấu hình Matplotlib ---
-matplotlib.use('Agg')
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# --- 2. Configure Matplotlib ---
+matplotlib.use(os.getenv('MPL_BACKEND', 'Agg'))
 
 
 # --- 3. Pydantic Models: Định nghĩa cấu trúc dữ liệu đầu vào ---
@@ -224,8 +230,21 @@ def create_new_user_chart(chart_data: dict, last_month_str: str, prev_month_str:
 
 
 # --- 5. Logic API: Khởi tạo ứng dụng và các Endpoints ---
-app = FastAPI(title="Chart Generation API", description="API tạo các loại biểu đồ báo cáo.")
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app = FastAPI(
+    title=os.getenv('APP_NAME', 'Chart Generation API'),
+    description="API tạo các loại biểu đồ báo cáo.",
+    version=os.getenv('APP_VERSION', '1.0.0')
+)
+
+# Configure CORS from environment
+cors_origins = os.getenv('CORS_ORIGINS', '*').split(',')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=os.getenv('CORS_CREDENTIALS', 'true').lower() == 'true',
+    allow_methods=os.getenv('CORS_METHODS', '*').split(','),
+    allow_headers=os.getenv('CORS_HEADERS', '*').split(',')
+)
 
 @app.get("/")
 def read_root():
@@ -255,4 +274,16 @@ def generate_new_user_chart_endpoint(request: NewUserChartRequest):
 
 # --- 6. Chạy Server ---
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=1234)
+    host = os.getenv('HOST', '0.0.0.0')
+    port = 8000
+    workers = int(os.getenv('WORKERS', '1'))
+    log_level = os.getenv('LOG_LEVEL', 'info')
+    
+    logger.info(f"Starting server on {host}:{port} with {workers} workers")
+    uvicorn.run(
+        app, 
+        host=host, 
+        port=port,
+        workers=workers,
+        log_level=log_level
+    )

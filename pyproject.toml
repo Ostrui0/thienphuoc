@@ -1,7 +1,7 @@
 [project]
-name = "projects"
-version = "0.1.0"
-description = "Add your description here"
+name = "chart-generation-api"
+version = "1.0.0"
+description = "FastAPI service for generating various types of charts and reports"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
@@ -10,4 +10,23 @@ dependencies = [
     "numpy>=2.3.3",
     "pydantic>=2.12.1",
     "uvicorn>=0.37.0",
+    "requests>=2.31.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "httpx>=0.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "httpx>=0.24.0",
 ]
